@@ -84,7 +84,7 @@
 
 ### 1.5 包格式选型
 
-启动包也不再自研格式：S1.5 复用上游已支持的 Modrinth `.mrpack` 导入链路（`src-tauri/src/instance/helpers/modpack/import.rs`），mod 文件带 sha1 校验与多源下载；CurseForge 格式逐文件依赖 `api.curseforge.com` 解析，MultiMC 格式导入时不产生下载任务，均不适合作为社团包主格式（详细对比见附录 C.3）。
+启动包也不再自研格式：S1.5 复用上游已支持的 Modrinth `.mrpack` 导入链路（`src-tauri/src/instance/helpers/modpack/import.rs`），mod 文件带 sha1 校验；CurseForge 格式逐文件依赖 `api.curseforge.com` 解析，MultiMC 格式导入时不产生下载任务，均不适合作为社团包主格式（详细对比见附录 C.3）。
 
 ---
 
@@ -300,17 +300,17 @@
 
 **验收标准：**
 
-- [ ] tag `v8.1.0` 触发 CI，产出 `xianjian-8.1.0.mrpack` 与 `latest.json`（含整包 sha256、体积、更新时间、更新说明）
-- [ ] `mods.lock.json` 为唯一事实来源，逐项包含 `path / url / sha1 / size / license`
+- [ ] tag `v8.1.0` 触发 CI，产出 `xianjian-8.1.0.mrpack`，并在发布说明中记录整包 sha256、体积、更新时间与更新说明（不产出 `latest.json`）
+- [ ] `mods.lock.json` 为唯一事实来源，逐项包含 `path / url / sha1 / size / license / source`
 - [ ] 去重后 mod 数为 21：CI 拒绝重复 sha1 与重复模组 id；首个包修正 v8.0.0 中重复的 sodium
 - [ ] 包内不含 `libraries/`、`assets/`、`versions/*.jar`、`saves/`、`screenshots/`、`logs/`、`usercache.json`、`servers.dat` 与任何账号凭据
-- [ ] `overrides/` 中不出现 jar；`options.txt` 已移除 `lastServer` 等本机痕迹
+- [ ] `overrides/mods/` 之外不出现 jar；`options.txt` 已移除 `lastServer` 等本机痕迹
 - [ ] `dependencies` 锁定 `minecraft: 26.2` 与 `fabric-loader: 0.19.5`，不使用范围版本
 - [ ] 包体积 ≤ 120 MB（预期约 113 MB，约为原 903 MB 的 12.5%）
-- [ ] 主源（`{PACK_CDN}`）与备源（GitHub Release）均返回 200，`Content-Length` 与 `fileSize` 一致
-- [ ] CI 卫生检查覆盖：重复模组、个人数据、`..` 路径、`overrides/` 内 jar
+- [ ] 发布的单一下载链接可用，`Content-Length` 与 `fileSize` 一致（不建 CDN、不做备源）
+- [ ] CI 卫生检查覆盖：重复模组、个人数据、`..` 路径、`overrides/mods/` 之外的 jar
 - [ ] `tools/from-pcl.py` 可重复执行，且在命中重复文件时报错退出、由人确认
-- [ ] 官网与群文件发布 `.mrpack` 下载链接；P1 完成后首启引导按钮直接指向该包，群文件只作兜底
+- [ ] 官网与群文件提供 `.mrpack` 单一下载链接；P1 完成后首启引导按钮直接指向该包（`XJMC_PACK_URL`）
 - [ ] 附录 C.13 发版检查单逐项通过
 
 > 粒度说明：本故事是 P0 的一次性交付里程碑（约 1~2 人日），覆盖 pack 仓库、CI 与两个一次性脚本，由 pack 仓库维护者一次完成，不再按文件拆分为多个故事。
@@ -325,7 +325,7 @@
 
 - [ ] 导入 8.1.0 包后，mods 与基准清单 sha1 一致（21 个，无重复）
 - [ ] 安装完成后 `servers.dat` 已含预置服务器，认证服务器可选「仙建世界皮肤站」，无需手动修改任何认证设置
-- [ ] 同一份包在 `mirror` 与 `official` 两种下载源下均可完成安装
+- [ ] 同一份包在 `mirror` 与 `official` 两种游戏下载源下均可完成安装
 - [ ] 从安装到进入主城 ≤ 8 分钟，其中包安装 ≤ 3 分钟（100 Mbps）
 - [ ] 包必须自带 `fabric-api`（导入整合包时不会自动补装）
 - [ ] 实例落在已配置的游戏目录内；未配置游戏目录时给出明确提示
@@ -373,8 +373,8 @@
 **验收标准：**
 
 - [ ] MC 26.2 或 Fabric 0.19.5 在镜像站不可用时，提示切换下载源重试，并给出可复制的版本号
-- [ ] 文件 404 或 sha1 不匹配时，指出具体文件路径与期望哈希，提供「重试」与备源切换
-- [ ] 断网时给出可操作提示（检查网络 / 重试 / 切换备源），而非泛化「安装失败」
+- [ ] 文件 404 或 sha1 不匹配时，指出具体文件路径与期望哈希，提供「重试」
+- [ ] 断网时给出可操作提示（检查网络 / 重试），而非泛化「安装失败」
 - [ ] Java 版本 < 25 时，引导至 Java 管理并说明包要求的最低版本
 - [ ] 包版本高于客户端支持时，提示先更新启动器（读取 `minLauncherVersion`）
 - [ ] 重复 mod 或清单损坏时，在导入前拒绝并给出发版方可见的错误码
@@ -408,7 +408,7 @@
 **验收标准：**
 
 - [ ] 目录缓存为内存 + 磁盘（`pack-catalog.json`），TTL 10 分钟
-- [ ] 静态目录使用 `If-Modified-Since` / 内容 sha256；API 模式使用 `ETag` / `If-None-Match`
+- [ ] 目录请求使用 `ETag` / `If-None-Match` 做条件请求
 - [ ] 打开页面先渲染缓存，再后台刷新（stale-while-revalidate）
 - [ ] 离线时显示上次成功时间与「离线」标记；文件可下载时仍可安装，否则提示稍后重试
 - [ ] 目录请求失败只记录日志，不阻塞启动器启动
@@ -424,12 +424,12 @@
 **验收标准：**
 
 - [ ] 详情页默认选中 `latestVersion`，可切换历史版本
-- [ ] `install_cloud_pack(packId, version)`：下载（进度、重试、备源切换）→ 下载引擎校验 sha1 → 导入前校验 sha256 → `create_instance` → 写入 `pack_ref`
+- [ ] `install_cloud_pack(packId, version)`：下载（进度、重试）→ 下载引擎校验 sha1 → 导入前校验 sha256 → `create_instance` → 写入 `pack_ref`
 - [ ] `pack_ref = { id, version, channel, installedAt }` 记录于实例
 - [ ] 安装完成提示「启动游戏」
 - [ ] 分别从目录安装 `base` 与小游戏包各一次，均可进服
 - [ ] 磁盘不足时按 `sizeBytes` 估算并提示
-- [ ] 非白名单下载域或 sha1 / sha256 不匹配时中止安装，并展示期望值与实际值
+- [ ] 只接受云管理器返回的 HTTPS 下载地址，拒绝目录外链接；sha1 / sha256 不匹配时中止安装，并展示期望值与实际值
 - [ ] `cargo fmt --check`、`cargo check`、`tsc --noEmit` 通过
 - [ ] 在浏览器中用 `sjmcl-frontend-dev-preview` 验证详情页版本切换与安装进度
 
@@ -458,7 +458,7 @@
 
 **验收标准：**
 
-- [ ] 下载域白名单为 `{PACK_CDN}` 与 GitHub Release，其他域拒绝
+- [ ] 只接受云管理器返回的 HTTPS 下载地址，其他来源（目录外链接、用户输入 URL）拒绝
 - [ ] 目录哈希 + 文件哈希双重校验
 - [ ] `isActive=false` 的包在目录中置灰、安装禁用，已安装实例照常启动
 - [ ] `changelog` 必填；版本 tag 与目录条目一一对应
@@ -636,14 +636,14 @@
 - FR-19：安装完成后，前端必须完成「创建实例 → 等待任务组完成 → 选中实例 → 启动游戏」编排，后端不新增总编排命令。
 - FR-20：包内必须自带 `fabric-api`；导入整合包时系统不得自动补装 Fabric API。
 - FR-21：实例必须落在已配置游戏目录的 `versions/` 下；未配置时必须给出明确提示。
-- FR-22：启动包必须为 Modrinth mrpack：mods 走 `files[]`（sha1 + 多源），config / 资源包 / 光影走 `overrides/`；`libraries/`、`assets/`、客户端 jar、`saves/`、`screenshots/`、`logs/` 与账号信息不得进包。
+- FR-22：启动包必须为 Modrinth mrpack：公共 mod 走 `files[]`（sha1 校验 + 官方直链），社团自制/汉化 mod 暂放 `overrides/mods/`（S1.6 起改由云管理器托管并通过 `files[]` 分发），config / 资源包 / 光影走 `overrides/`；`libraries/`、`assets/`、客户端 jar、`saves/`、`screenshots/`、`logs/` 与账号信息不得进包。
 - FR-23：包的 `dependencies` 必须锁定 `minecraft: 26.2` 与 `fabric-loader: 0.19.5`，不得使用范围版本。
-- FR-24：8.1.0 包体积必须 ≤ 120 MB；每次发布必须保留上一版本文件，回滚功能在 P2 提供。
+- FR-24：8.1.0 包体积必须 ≤ 120 MB；S1.5 保留发布页历史链接，S1.6 起历史版本由云管理器保留；客户端回滚功能在 P2 提供。
 - FR-25：安装新版本必须新建实例，不得原地替换；旧实例与存档必须保留。
 
 ### 4.4 S1.6 云整合包服务
 
-- FR-26：目录契约必须为 `GET {PACK_CDN}/packs.json`（静态）或 `{PACK_API}/api/packs`（独立服务），字段见附录 D.2 / D.3。
+- FR-26：目录与下载地址必须由云整合包管理器提供：`GET {PACK_API}/api/packs`，字段见附录 D.2 / D.3；客户端不得硬编码包文件下载域。
 - FR-27：目录页必须显示总数与分类计数（`base` / `minigame` / `modded` / `other`），计数以服务端 `total` / `counts` 为准。
 - FR-28：目录必须支持分类筛选、搜索与历史版本切换。
 - FR-29：目录必须缓存于内存 + 磁盘（`pack-catalog.json`），TTL 10 分钟，并采用 stale-while-revalidate。
@@ -652,7 +652,7 @@
 - FR-32：实例必须记录 `pack_ref = { id, version, channel, installedAt }`；无 `pack_ref` 的实例不参与更新检查。
 - FR-33：实例页加载时必须调用 `check_pack_updates()`；有更新时必须显示「可更新 vX → vY」与 `changelog`。
 - FR-34：系统必须只提示更新、不自动下载；更新安装必须新建实例，实例名默认「<包名> <版本>」，重名追加序号。
-- FR-35：下载域白名单必须为 `{PACK_CDN}` 与 GitHub Release，并对整包与单文件双重哈希校验。
+- FR-35：系统必须只接受云管理器返回的 HTTPS 下载地址，并对整包与单文件双重哈希校验。
 - FR-36：`isActive=false` 的包必须在目录中置灰并禁用安装；已安装实例必须照常启动。
 - FR-37：首页必须提供「云整合包 N · 可更新 M」小组件。
 - FR-38：「发现 → 整合包」源列表必须新增 `XauatCraft`，该源直接渲染云整合包目录，安装复用 `install_cloud_pack`。
@@ -681,6 +681,7 @@
 - 不做多社团 SaaS 化，不做面向其他社团的包市场；
 - 不删除上游功能（扩展系统、MCP 保持原样；发现页仅在整合包源列表叠加 xauatcraft 入口，见 US-022）；
 - 不为启动包自研格式（mrpack 之外不引入自有必需格式）；
+- 不自建包 CDN 与多源备源：分发统一交给 S1.6 云整合包管理器，S1.5 只发布单一下载链接（本期不做 CDN、不做 GitHub 备源）；
 - 不做后台服务：邀请码审核、白名单审批、皮肤站自身不在本项目范围；
 - 本期不做：增量更新与回滚（P2）、Ed25519 签名（P2）、`xjmc.pack.json` 超集字段（P2）、`beta` 渠道（P1 只实现 `stable`）；
 - 不做旧 PCL 包到 mrpack 的自动迁移工具——`tools/from-pcl.py` 仅用于打包侧，不随客户端分发；
@@ -781,7 +782,7 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 - 复用 `create_instance(modpack_path, modpack_version)` 与 mrpack 解析，不新增包格式。
 - 导入整合包时不会自动补 Fabric API，包必须自带 `fabric-api`（`src-tauri/src/instance/commands.rs:1188-1190`）。
 - 实例必须落在**已配置**游戏目录的 `versions/` 下（`src-tauri/src/instance/commands.rs:1061`）。
-- 下载引擎按 sha1 校验（`download.rs`），多源回退见 `crates/sjmcl-downloader/src/actor.rs:1599-1647`；因此目录同时给出 sha1 与 sha256，导入边界再校验整包 sha256。
+- 下载引擎按 sha1 校验（`download.rs`）；mrpack 的 `downloads[]` 支持多地址回退（`crates/sjmcl-downloader/src/actor.rs:1599-1647`），但本方案只填单一地址（S1.5 用发布链接/官方直链，S1.6 起由云管理器下发）。目录同时给出 sha1 与 sha256，导入边界再校验整包 sha256。
 - Java：MC 26.2 的 `javaVersion.majorVersion` 为 25（组件 `java-runtime-epsilon`）；仅创建实例时可自动下载，启动阶段不下载，一键安装需在创建前检查。
 - 包体积：只分发社团内容，`libraries` / `assets` / 客户端 jar 交给启动器按下载源拉取。
 - 详细方案见附录 C。
@@ -792,7 +793,7 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 - **镜像策略**：默认 `mirror`（BMCLAPI 优先），设置页仍可切回官方源或自动。
 - **发布版本判定**：更新检查仅在 `build_type == Release` 且当前版本为合法 semver 时执行，本地开发构建不会弹更新。
 - **失败静默**：更新接口不可用时只记录日志，不阻断启动。
-- **云整合包**：目录与实例通过 `pack_ref` 关联；安装复用 `create_instance`，更新只做「比对 + 新建实例」，不新增安装器；目录不可用只影响目录页，不阻塞启动与实例管理；目录服务与 App 更新服务（`appapi.xauat.site`）相互独立。详细设计见附录 D。
+- **云整合包**：目录、版本与下载地址由云整合包管理器统一提供（服务地址记为 `{PACK_API}`）；目录与实例通过 `pack_ref` 关联；安装复用 `create_instance`，更新只做「比对 + 新建实例」，不新增安装器；目录不可用只影响目录页，不阻塞启动与实例管理；管理器与 App 更新服务（`appapi.xauat.site`）相互独立。详细设计见附录 D。
 
 ### 7.5 风险与对策
 
@@ -804,12 +805,13 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 | identifier 变更 | 老用户配置丢失 | 发布前定死，本期已确定 |
 | 用户协议仍指向上游 | 合规瑕疵 | 发布前补齐本次发行版协议（见 §9 第 8 条） |
 | 邀请码/白名单无接口 | 人工审批仍是瓶颈 | 客户端只做入口，后台单独立项 |
-| MC 26.2 / Fabric 0.19.5 元数据在镜像站滞后 | 启动包导入直接失败 | 失败时自动切官方源；发版前双源各装一次 |
+| MC 26.2 / Fabric 0.19.5 元数据在镜像站滞后 | 启动包导入直接失败 | 失败时自动切官方源；发版前在 mirror 与 official 两种游戏下载源下各装一次 |
 | 启动阶段不自动下载 Java | 玩家卡在「未找到 Java」 | 一键安装前检测并补 `java-runtime-epsilon`；指南前置 |
 | 更新 = 新实例，存档未迁移 | 玩家投诉 | 发版说明与完成弹窗明确提示；P2 增量更新 |
 | 第三方 mod 再分发许可 | 合规风险 | 优先官方直链；`mods.lock.json` 记录来源与许可 |
 | 启动包无签名 | 包可被替换 | P2 Ed25519 签名 + 内置公钥，此前依赖 HTTPS 与群内校验值 |
-| 云目录服务不可用 | 云整合包页不可用 | 客户端缓存 + 离线标记；目录失败不影响启动与实例管理 |
+| S1.5 只有单一下载链接，失效或限速时无法自动切换 | 玩家无法获取包 | 官网/群文件保留副本人工兜底；尽早切到 S1.6 云管理器分发 |
+| 云管理器服务不可用 | 云整合包页不可用 | 客户端缓存 + 离线标记；目录失败不影响启动与实例管理 |
 | 目录元数据与包文件不一致 | 装出错误版本 | 目录同时给 sha1 / sha256，导入前校验；发布侧 CI 强校验 |
 | 多包并存占用磁盘 | 玩家磁盘紧张 | 安装前显示包大小与预计占用；实例页可清理 |
 | 包线增多导致版本漂移 | 玩家进错服务器 | 每个实例记录 `pack_ref`；实例卡片显示包名与版本 |
@@ -848,8 +850,8 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 
 1. 皮肤站是否提供邀请码/白名单接口，以及接口鉴权方式（影响 S2）；
 2. 图形资源（图标、启动图、安装器素材）的提供方与交付时间；
-3. 启动包版本号是否延续 PCL 包（`8.0.0` → `8.1.0`），以及 `{PACK_CDN}` 的域名、归属、配额与回源策略；
-4. 云整合包目录用 `{PACK_CDN}` 的静态 `packs.json`，还是独立部署 `{PACK_API}/api/packs`（不复用 App 更新服务；影响下架与统计能力）；
+3. 启动包版本号是否延续 PCL 包（`8.0.0` → `8.1.0`）；S1.5 期间社团自制/汉化 mod 是放 `overrides/` 随包分发，还是由云管理器提前提供下载地址；
+4. 云整合包管理器的部署位置、鉴权方式与上线时间，以及从 S1.5 单链分发切换到管理器的版本节点；
 5. 分类枚举是否固定为 `base` / `minigame` / `modded` / `other`；
 6. 更新提示策略：只在实例页标记，还是启动时弹窗，以及检查频率；
 7. 各包是否统一 mrpack 与同一 MC 版本，还是允许模组服使用不同 MC / loader；
@@ -898,12 +900,12 @@ pnpm tauri build             # 打包（需 Rust 工具链）
 | 能力 | 位置 | 对启动包的意义 |
 | --- | --- | --- |
 | 整合包解析（CurseForge / Modrinth / MultiMC） | `src-tauri/src/instance/helpers/modpack/import.rs:37-58` | 包格式无需自研，mrpack 已被支持 |
-| mrpack 文件下载：`sha1` + 多 `downloads` 源 + 体积 | `src-tauri/src/instance/helpers/modpack/modrinth.rs:125-150` | 完整性校验与源回退 |
+| mrpack 文件下载：`sha1` + `downloads[]` + 体积 | `src-tauri/src/instance/helpers/modpack/modrinth.rs:125-150` | 完整性校验；本方案只填单一下载地址 |
 | `overrides/` 解压，含 zip-slip 防护 | `src-tauri/src/instance/helpers/modpack/import.rs:112-147` | config、资源包、光影按实例投放 |
 | `create_instance(modpack_path, modpack_version)` | `src-tauri/src/instance/commands.rs:1035-1099`、`:1222-1228` | 一条命令建实例并写入包版本 |
 | `Instance.modpack_version` | `src-tauri/src/instance/models/misc.rs:110` | 已有的更新判定锚点 |
 | 实例目录隔离（mods / config / resourcepacks…） | `src-tauri/src/instance/models/misc.rs:17-30` | 包内容不会污染全局游戏目录 |
-| 下载引擎的多源回退 | `src-tauri/crates/sjmcl-downloader/src/actor.rs:1599-1647` | `downloads[]` 主备源失败后自动轮换 |
+| 下载引擎的多地址回退 | `src-tauri/crates/sjmcl-downloader/src/actor.rs:1599-1647` | 能力保留；S1.5 / S1.6 均只使用单一地址 |
 | 整合包导出（Modrinth / MultiMC） | `src-tauri/src/instance/commands.rs:1612-1645`、`helpers/modpack/export.rs` | 可用「母版实例」反向产出 mrpack |
 | 导入整合包时跳过 Fabric API 自动安装 | `src-tauri/src/instance/commands.rs:1188-1190` | 包必须自带 `fabric-api` |
 | 预置认证服务器、预置 `servers.dat` | FR-3、US-008 | 包内不必携带账号与服务器配置 |
@@ -930,13 +932,15 @@ xianjian-8.1.0.mrpack (zip)
 │   ├── config/                  # 预设配置（65 个文件）
 │   ├── options.txt              # 脱敏后的画面/键位预设
 │   ├── resourcepacks/           # XAUATcraft资源包 v4.0 等
-│   └── shaderpacks/             # Solas / Photon
+│   ├── shaderpacks/             # Solas / Photon
+│   └── mods/                    # 仅社团自制/汉化 mod（S1.6 前）
 └── LICENSE-pack.md              # 包内第三方 mod 来源与许可清单
 ```
 
 约定：
 
-- `mods/*.jar` 走 `files[]` 而非 `overrides/`：体积大、稳定、需要哈希与多源回退；
+- 公共 `mods/*.jar` 走 `files[]` 而非 `overrides/`：体积大、稳定、需要哈希校验与官方直链；
+- 社团自制/汉化 mod 暂放 `overrides/mods/`：随包分发、不依赖外部下载地址；S1.6 起改由云管理器托管并回归 `files[]`；
 - 配置类小文件走 `overrides/`：便于在 Git 中 review，发版频率高，不强求逐文件哈希；
 - **不进包**：`libraries/`、`assets/`、`versions/*.jar`、`saves/`、`screenshots/`、`logs/`、`usercache.json`、`servers.dat`（由启动器预置）、任何账号凭据；
 - `dependencies` 锁定 `minecraft: "26.2"` 与 `fabric-loader: "0.19.5"`，**不允许范围版本**，确保所有玩家同构。
@@ -948,7 +952,7 @@ xianjian-8.1.0.mrpack (zip)
   "schemaVersion": 1,
   "id": "xianjian",
   "channel": "stable",
-  "icon": "https://{PACK_CDN}/pack/icon.png",
+  "icon": "https://…/pack/icon.png",
   "java": { "min": 25 },
   "memoryMb": 4096,
   "jvmArgs": ["--enable-native-access=ALL-UNNAMED", "--sun-misc-unsafe-memory-access=allow"],
@@ -957,14 +961,14 @@ xianjian-8.1.0.mrpack (zip)
     { "name": "仙建小游戏", "ip": "minigame.xauatcraft.com" }
   ],
   "minLauncherVersion": "0.2.0",
-  "notes": "https://{PACK_CDN}/pack/8.1.0/notes.md",
+  "notes": "https://…/pack/8.1.0/notes.md",
   "signature": "ed25519:…"
 }
 ```
 
 其中 `servers` 仅作补充，默认行为仍是启动器预置（见 C.8）；`java.min` 用于安装前提示，实际选择仍由 `jre_selector` 按 MC 26.2 的 `javaVersion`（`java-runtime-epsilon` / major 25）决定。
 
-> 附录 C 中的 `{PACK_CDN}` 是包文件的 CDN 域名占位符，尚未确定；它只用于放 mods、整包与 `latest.json`，与认证服务器、游戏服务器无关（见 §9 待决事项）。
+> 附录 C 不再假设独立的包 CDN：S1.5 只发布单一下载链接（官网/群文件），公共 mod 使用官方直链，社团 mod 随包放 `overrides/`；S1.6 起包文件与下载地址由云整合包管理器统一提供（见附录 D 与 §9 待决事项）。
 
 ### C.3 候选方案对比与取舍
 
@@ -972,7 +976,7 @@ xianjian-8.1.0.mrpack (zip)
 | --- | --- | --- | --- | --- | --- |
 | A. 冻结目录（现状 PCL 包） | 903 MB | 无 | 无 | 0 | 仅作旧包保留 |
 | B. CurseForge zip | ≈113 MB | 无（overrides 不校验） | 无 | 0 | 不推荐：逐文件依赖 `api.curseforge.com` 解析，社团自有/汉化 mod 无 CF 项目 ID 时只能塞 overrides |
-| C. **mrpack（Modrinth 规范）** | ≈113 MB | sha1 + 多源 | 只能整包换版本 | **0（上游已支持）** | **P0 采用** |
+| C. **mrpack（Modrinth 规范）** | ≈113 MB | sha1 校验 | 只能整包换版本 | **0（上游已支持）** | **P0 采用** |
 | D. mrpack + `xjmc.pack.json` 超集 | 同上 | 同上 | 文件级 diff | 5~8 人日 | **P2 采用** |
 | E. MultiMC 格式 | ≈113 MB | 无 | 无 | 0 | 不采用：导入侧不返回下载任务（`multimc.rs:155-162`），mods 只能进 overrides |
 | F. 扩展系统实现 | — | — | — | 大 | 不采用：扩展是前端沙箱 + 命令白名单（`src/contexts/extension/host.tsx:441-460`），无法写实例目录或提交下载任务 |
@@ -986,35 +990,28 @@ xianjian-8.1.0.mrpack (zip)
 ```
 pack/
 ├── pack.json              # 包元信息：名称、版本、MC、loader、作者、changelog
-├── mods.lock.json         # { path, url, sha1, size, license } —— 唯一事实来源
+├── mods.lock.json         # { path, url, sha1, size, license, source } —— 唯一事实来源
 ├── overrides/             # 直接对应包内 overrides/
 └── tools/verify.mjs       # 卫生检查
 ```
 
 CI（tag `v8.1.0`）流程：
 
-1. `verify`：`mods.lock.json` 中的 sha1 逐个校验；**按 sha1/模组 id 去重**；禁止 `saves/`、`screenshots/`、`logs/`、`usercache.json`；禁止 `..` 路径；`overrides/` 中不得出现 jar；
+1. `verify`：`mods.lock.json` 中的 sha1 逐个校验；**按 sha1/模组 id 去重**；禁止 `saves/`、`screenshots/`、`logs/`、`usercache.json`；禁止 `..` 路径；`overrides/mods/` 之外的目录不得出现 jar；
 2. `build`：生成 `modrinth.index.json` → 打 zip → 计算整包 sha256；
-3. `publish`：上传对象存储与 GitHub Release（双源），更新 `latest.json` 与云目录条目（附录 D）：
-
-```json
-{ "version": "8.1.0", "url": "https://{PACK_CDN}/pack/8.1.0.mrpack",
-  "sha256": "…", "size": 118000000, "minLauncherVersion": "0.2.0",
-  "notes": "…", "releasedAt": "2026-11-01T10:00:00Z" }
-```
-
-> 云整合包服务上线后，单包 `latest.json` 由目录条目取代；静态 `latest.json` 仍保留作为兜底。
+3. `publish`：上传 `xianjian-8.1.0.mrpack` 到官网/群文件，得到单一下载链接并写入发布说明；不产出 `latest.json`、不建对象存储、不做备源。S1.6 云整合包管理器上线后，改为在管理器中登记版本，由管理器托管文件并下发下载地址（附录 D）。
 
 配套两个一次性脚本：
 
-- `tools/from-pcl.py`：把现有 PCL 版本目录转成 `mods.lock.json` + `overrides/`（扫描 `mods/`、`config/`、`resourcepacks/`、`shaderpacks/`，计算 sha1；命中重复时**报错退出**，由人确认）；
+- `tools/from-pcl.py`：把现有 PCL 版本目录转成 `mods.lock.json` + `overrides/`（扫描 `mods/`、`config/`、`resourcepacks/`、`shaderpacks/`，计算 sha1，按 `source` 区分公共/社团自制 mod；社团自制/汉化 mod 放 `overrides/mods/`；命中重复时**报错退出**，由人确认）；
 - `tools/diff-pack.py`：对比两个包版本的 mod 列表，生成玩家可读的更新说明。
 
 托管：
 
-- 主源为对象存储（`{PACK_CDN}` 指包 CDN 域名，尚未确定，见 §9），需支持 Range 请求与长缓存；备源为 GitHub Release 直链，写入 mrpack 的 `downloads[1]`，由下载引擎在失败时自动轮换（`crates/sjmcl-downloader/src/actor.rs:1599-1647`）；
-- 包内每个文件独立 URL 与 sha1（`modrinth.rs:125-150`），玩家重装/修复时只补缺失文件；
-- 整包 sha256 记录在 `latest.json`，客户端下载后校验通过才导入。
+- S1.5 只发布单一下载链接：P0 为官网/群文件链接，P1 通过 `XJMC_PACK_URL` 注入；不设对象存储、不做多源备源；
+- 公共 mod 在 `files[].downloads` 中直接使用官方直链（Modrinth / CurseForge CDN）；社团自制/汉化 mod 在 `mods.lock.json` 中标记来源后放 `overrides/mods/` 随包分发，不产生下载任务。S1.6 管理器上线后，统一改由管理器托管并下发下载地址；
+- 包内每个文件仍保留 sha1（`modrinth.rs:125-150`），玩家重装/修复时只补缺失文件；
+- 整包 sha256 记录在发布说明中，客户端下载后校验通过才导入。
 
 > 打包的另一条路径：在客户端里维护一个「母版实例」，直接用「导出整合包」产出 mrpack（`commands.rs:1612`），适合小改；CI 路线适合规范化发版。
 
@@ -1042,7 +1039,7 @@ CI（tag `v8.1.0`）流程：
 **P2（可选）**
 
 - 读取 `xjmc.pack.json`：图标、推荐内存、JVM 参数、服务器补充、最低启动器版本；
-- 更新检查：用 `latest.json` 与 `Instance.modpack_version` 比对，实例卡片显示「v8.0.0 → v8.1.0」；
+- 更新检查：S1.5 不提供（无 `latest.json`）；S1.6 起由云管理器目录与 `Instance.modpack_version` 比对（附录 D）；
 - 文件级增量更新：按新包清单比对本地 sha1，只下差异文件，并处理「新版本删除的 mod」；`overrides` 支持 `write-if-missing` 策略，避免覆盖玩家改过的画面设置；
 - 完整性修复：实例菜单 →「检查文件完整性」，缺失/损坏文件按清单重下；
 - Ed25519 签名：公钥随客户端构建内置，校验 `xjmc.pack.json` 后再导入。
@@ -1062,7 +1059,7 @@ CI（tag `v8.1.0`）流程：
 | 重复文件 | 相同 sha1 或相同模组 id 视为错误，CI 失败 |
 | 路径安全 | 清单与 zip 内路径不得包含 `..`、绝对路径；解压侧已用 `mangled_name` 防护（`import.rs:112-147`） |
 | 配置脱敏 | `options.txt` 只保留画面/语言/键位，移除 `lastServer` 等本机痕迹 |
-| 许可 | `mods.lock.json` 记录来源与许可；优先官方 CDN 直链，仅自研/汉化包走社团 CDN |
+| 许可 | `mods.lock.json` 记录来源与许可；优先官方直链，自研/汉化 mod 随包放 `overrides/mods/`（S1.6 后改由云管理器托管） |
 
 ### C.8 登录与进服
 
@@ -1079,7 +1076,7 @@ CI（tag `v8.1.0`）流程：
 | 失败场景 | 期望表现 |
 | --- | --- |
 | MC 26.2 或 Fabric 0.19.5 在镜像站不可用 | 提示切换下载源重试，并给出可复制的版本号，而非泛化「安装失败」 |
-| 文件 404 / sha1 不匹配 | 指出具体文件路径与期望哈希，提供「重试」与备源切换 |
+| 文件 404 / sha1 不匹配 | 指出具体文件路径与期望哈希，提供「重试」 |
 | Java 版本不足（< 25） | 引导至 Java 管理，说明包要求的最低版本 |
 | 包版本高于客户端支持 | 提示先更新启动器（读取 `minLauncherVersion`） |
 | 重复 mod / 清单损坏 | 在导入前拒绝并给出发版方可见的错误码 |
@@ -1113,8 +1110,7 @@ CI（tag `v8.1.0`）流程：
       "hashes": { "sha1": "62a70961a5b3e06938e06ab5f2dc4c5a51cf3323", "sha512": "…" },
       "env": { "client": "required", "server": "unsupported" },
       "downloads": [
-        "https://{PACK_CDN}/pack/8.1.0/mods/sodium-fabric-0.9.2+mc26.2.jar",
-        "https://github.com/xauatcraft/pack/releases/download/v8.1.0/sodium-fabric-0.9.2+mc26.2.jar"
+        "https://…/sodium-fabric-0.9.2+mc26.2.jar"
       ],
       "fileSize": 1885572
     }
@@ -1128,25 +1124,25 @@ CI（tag `v8.1.0`）流程：
 以现有 PCL 包的版本目录 `versions/仙建世界客户端-v8.0.0-26.2-Fabric/` 作为输入：
 
 1. **体检与去重**：`shasum -a 1 mods/*.jar | sort` 找出同哈希文件；确认 `[钠] sodium-fabric-0.9.2+mc26.2.jar` 与 `sodium-fabric-0.9.2+mc26.2.jar` 为同一文件后只保留一个（再按 `fabric.mod.json` 的 mod id 复核），最终 mod 数应为 **21**；
-2. **生成清单**：`tools/from-pcl.py <src> --out pack/`，得到 `mods.lock.json`（path / url / sha1 / size）与 `overrides/`（`config/`、`resourcepacks/`、`shaderpacks/`、脱敏后的 `options.txt`）；
+2. **生成清单**：`tools/from-pcl.py <src> --out pack/`，得到 `mods.lock.json`（path / url / sha1 / size / 来源）、`overrides/`（`config/`、`resourcepacks/`、`shaderpacks/`、脱敏后的 `options.txt`），以及社团自制/汉化 mod 的 `overrides/mods/`；
 3. **补齐必需项**：确认 `fabric-api-0.161.0+26.2.jar` 在清单内；确认 `sodium-options.json`、`mezz_config` 等预设随 `overrides/` 一起进入；
-4. **上传**：mods 与 overrides 内的大文件传到 `{PACK_CDN}/pack/8.1.0/`，URL 写入清单；同一批文件同步到 GitHub Release 作为 `downloads[1]`；
-5. **出包**：CI 生成 `xianjian-8.1.0.mrpack` 与 `latest.json`（整包 sha256、体积、更新时间、更新说明）；
-6. **双源验证**：在 `mirror` 与 `official` 两种下载源下各走一次「全新安装 → 启动 → 进服」，确认 21 个 mod 全部加载、`servers.dat` 有预置条目、认证服务器可选「仙建世界皮肤站」；
-7. **发布**：`latest.json` 与官网下载页上线，并在 `packs.json` / 云目录中登记该版本与 `base` 分类；P1 完成后首启引导按钮直接指向该包，群文件只作兜底。
+4. **上传**：把 `xianjian-8.1.0.mrpack` 上传到官网/群文件，得到单一下载链接；不建 CDN、不做 GitHub 备源。公共 mod 在 `files[].downloads` 中写官方直链，社团自制/汉化 mod 放 `overrides/mods/`；
+5. **出包**：CI 生成 `xianjian-8.1.0.mrpack`，并在发布说明中记录整包 sha256、体积、更新时间与更新说明（不产出 `latest.json`）；
+6. **游戏下载源验证**：在 `mirror` 与 `official` 两种游戏下载源下各走一次「全新安装 → 启动 → 进服」，确认 21 个 mod 全部加载、`servers.dat` 有预置条目、认证服务器可选「仙建世界皮肤站」；
+7. **发布**：官网下载页与群文件上线单一 `.mrpack` 链接；S1.6 云管理器上线后在该管理器中登记 `base` 版本并接管分发，首启引导按钮改为指向管理器。
 
 预期结果：包体积约 **113 MB**（现状 903 MB 的 12.5%），首次安装约 2~3 分钟（100 Mbps），更新说明只列出 mod 变更。
 
 ### C.13 发版检查单
 
 - [ ] 包内 mods 数量与 `mods.lock.json` 一致，无重复 sha1 / 重复模组 id
-- [ ] 所有 `downloads` 主备源均返回 200，`Content-Length` 与 `fileSize` 一致
-- [ ] `minecraft`、`fabric-loader` 版本锁定，且能在 `mirror` 与 `official` 两种下载源下完成安装
-- [ ] `overrides/` 无 jar、无个人数据、`options.txt` 已脱敏
+- [ ] 所有 `downloads` 地址均返回 200，`Content-Length` 与 `fileSize` 一致；社团自制 mod 在 `overrides/mods/` 内
+- [ ] `minecraft`、`fabric-loader` 版本锁定，且能在 `mirror` 与 `official` 两种游戏下载源下完成安装
+- [ ] `overrides/` 无公共 jar、无个人数据、`options.txt` 已脱敏
 - [ ] `xjmc.pack.json` 的 `minLauncherVersion` 与实际 API 兼容
 - [ ] 在 Windows 与 macOS 各做一次全新安装 + 进服
-- [ ] 更新 `latest.json`，保留上一版本文件以便回滚
-- [ ] 云目录条目（`packs.json` 或 `/api/packs`）已登记该版本，哈希、大小与整包一致
+- [ ] 在云管理器中登记新版本并保留上一版本（S1.6 起；S1.5 为发布页历史链接）
+- [ ] （S1.6 起）云管理器目录条目（`/api/packs`）已登记该版本，哈希、大小与整包一致
 - [ ] 群公告与官网同步更新下载链接与更新说明
 
 ## 附录 D：云整合包服务设计
@@ -1157,6 +1153,7 @@ CI（tag `v8.1.0`）流程：
 - **可见**：总数、分类计数、简介 / 图标 / MC 版本 / 加载器 / 大小 / 更新时间 / 版本历史；
 - **可装**：从目录直接安装任意包，复用 S1.5 的 mrpack 管线；
 - **可更新**：实例记录 `pack_ref`，与目录比对得到更新提示与日志；
+- **分发**：包文件由云管理器托管，目录返回绝对 `downloadUrl`；客户端不硬编码文件域，也不做多源备源；
 - **非目标**：不做面向其他社团的包市场；不做服务端白名单 / 邀请码（S2）；本期不做增量更新（P2）。
 
 ### D.2 数据模型
@@ -1188,8 +1185,7 @@ CI（tag `v8.1.0`）流程：
 | `changelog` | string | Markdown 更新日志 |
 | `sha1` / `sha256` | string | 整包哈希，下载与导入各校验一次 |
 | `sizeBytes` | number | 整包大小 |
-| `downloadUrl` | string | 主源，指向 `{PACK_CDN}` |
-| `mirrors` | string[] | 备源，如 GitHub Release |
+| `downloadUrl` | string | 云管理器返回的绝对下载地址（HTTPS），客户端不拼接文件域 |
 | `minLauncherVersion` | string | 低于此版本拒绝安装 |
 | `mcVersion` / `loader` | string / object | 可选，覆盖包级声明 |
 
@@ -1197,7 +1193,7 @@ CI（tag `v8.1.0`）流程：
 
 ### D.3 目录契约
 
-**P0 静态目录**：`GET {PACK_CDN}/packs.json`，一个文件包含全部分类与版本：
+**获取方式**：云管理器提供 `GET {PACK_API}/api/packs`，返回全部分类与版本：
 
 ```json
 {
@@ -1226,8 +1222,7 @@ CI（tag `v8.1.0`）流程：
           "sha1": "…",
           "sha256": "…",
           "sizeBytes": 118000000,
-          "downloadUrl": "https://{PACK_CDN}/pack/8.1.0.mrpack",
-          "mirrors": ["https://github.com/xauatcraft/pack/releases/download/v8.1.0/xianjian-8.1.0.mrpack"],
+          "downloadUrl": "https://{PACK_API}/files/xianjian-8.1.0.mrpack",
           "minLauncherVersion": "0.2.0"
         }
       ]
@@ -1236,7 +1231,7 @@ CI（tag `v8.1.0`）流程：
 }
 ```
 
-**P1 独立目录服务**（与静态同构，便于客户端无感切换；服务地址记为 `{PACK_API}`，不复用 App 更新服务）：
+**服务地址**记为 `{PACK_API}`（不复用 App 更新服务）：
 
 | 方法 | 路径 | 返回 |
 | --- | --- | --- |
@@ -1262,7 +1257,7 @@ CI（tag `v8.1.0`）流程：
 
 1. 打开详情，默认选中 `latestVersion`，可切换历史版本；
 2. 调用 `install_cloud_pack(packId, version)`；
-3. 下载整包（进度、重试、备源切换）→ 下载引擎校验 sha1 → 导入前校验 sha256；
+3. 从 `downloadUrl` 下载整包（进度、失败重试）→ 下载引擎校验 sha1 → 导入前校验 sha256；
 4. `create_instance(modpack_path, modpack_version)` 并写入 `pack_ref`；
 5. 提交下载任务组，完成后提示「启动游戏」。
 
@@ -1276,7 +1271,7 @@ CI（tag `v8.1.0`）流程：
 ### D.5 缓存与离线
 
 - 目录缓存：内存 + 磁盘（`pack-catalog.json`），TTL 10 分钟；
-- 条件请求：静态目录用 `If-Modified-Since` / 内容 sha256，API 模式用 `ETag` / `If-None-Match`；
+- 条件请求：API 使用 `ETag` / `If-None-Match`；
 - 打开页面先渲染缓存，再后台刷新（stale-while-revalidate）；
 - 离线时显示上次成功时间与「离线」标记；仍可安装（若文件可下载），否则提示稍后重试；
 - 目录请求失败只记录日志，不阻塞启动器启动。
@@ -1288,7 +1283,7 @@ CI（tag `v8.1.0`）流程：
 | 目录 404 / 超时 | 显示缓存与「离线」标记，提供重试 |
 | 包已下架 | 卡片置灰、安装禁用，提示「已下架」；已安装实例照常启动 |
 | 版本不存在 | 详情回到最新版并提示 |
-| 下载 404 / 超时 | 自动尝试 `mirrors`，仍失败则指出文件与来源 |
+| 下载 404 / 超时 | 提示重试或稍后再试，仍失败则指出文件与来源 |
 | sha1 / sha256 不符 | 中止安装，展示期望值与实际值 |
 | MC 版本 / 加载器不可用 | 提示切换下载源，并列出所需版本 |
 | 磁盘不足 | 安装前按 `sizeBytes` 估算并提示 |
@@ -1303,7 +1298,7 @@ CI（tag `v8.1.0`）流程：
 
 ### D.8 安全与治理
 
-- 只收录官方目录中的包；下载域白名单为 `{PACK_CDN}` 与 GitHub Release；
+- 只收录官方目录中的包；客户端只接受云管理器返回的 HTTPS 下载地址，不硬编码文件域；
 - 目录哈希 + 文件哈希双重校验，P2 增加 Ed25519 签名（公钥内置）；
 - 发布权限走 CI token 与人工 review；下架用 `isActive=false`，不删除历史版本；
 - `changelog` 必填；每个包独立仓库 / 目录，版本 tag 与目录条目一一对应。
@@ -1312,20 +1307,20 @@ CI（tag `v8.1.0`）流程：
 
 | 方案 | 改动 | 优点 | 缺点 |
 | --- | --- | --- | --- |
-| A. 静态 `packs.json` | CI 生成并上传到 `{PACK_CDN}` | 零后端、当天可用 | 无统计与即时下架，依赖 CDN 刷新 |
-| B. 独立目录服务 `{PACK_API}` | 新建 packs / versions 表与 `/api/packs`，文件仍放 `{PACK_CDN}` | 有统计、下架即时、可分渠道 | 需后端排期与契约评审 |
+| A. 静态 `packs.json` | 不采用：需独立的目录/文件托管点，且无法由管理器直接下发下载地址 | — | — |
+| B. 云管理器 API `{PACK_API}` | 管理器提供 packs / versions 与 `downloadUrl`，客户端调用 `/api/packs` | 有统计、下架即时、下载地址统一、可分渠道 | 需后端排期与契约评审 |
 | C. 复用 App 更新服务 | 不采用：`appapi.xauat.site` 的模型是 app → release → soft，没有分类、计数、MC / loader 元数据 | — | — |
 
-现成开源项目里没有与本方案同构的「mrpack 目录 + 分类计数 + 更新」服务：Solder（MIT，已归档，Solder 自有格式）、Modrinth 自身（可自托管但体量大）、packwiz（生成静态索引，无服务端计数）。因此建议先 A 上线，B 作为正式形态；客户端只依赖同一份 JSON 契约，切换无需改前端。
+现成开源项目里没有与本方案同构的「mrpack 目录 + 分类计数 + 更新 + 文件下发」服务：Solder（MIT，已归档，Solder 自有格式）、Modrinth 自身（可自托管但体量大）、packwiz（生成静态索引，无服务端计数）。因此采用 B：由云整合包管理器统一提供目录与下载地址；S1.5 的单链分发保留为兜底，管理器上线后逐步退役。
 
 ### D.10 分期与工作量
 
 | 阶段 | 内容 | 人日 |
 | --- | --- | --- |
-| P0 | 静态目录 + 列表 / 详情 / 计数 + 复用导入 | 1~2 |
+| P0 | 客户端对接云管理器目录 API + 列表 / 详情 / 计数 + 复用导入（服务端另行排期） | 1~2 |
 | P1 | `pack_ref`、更新比对、`install_cloud_pack`、首页组件 | 3~4 |
 | P1.5 | 「发现 → 整合包」增加 `xauatcraft` 源入口（附录 D.11 方案 A） | 1~2 |
-| P2 | API 化、增量更新、完整性修复、签名、多通道 | 5~8 |
+| P2 | 增量更新、完整性修复、签名、多通道、原地升级与回滚 | 5~8 |
 
 ### D.11 与「发现 → 整合包」下载源的关系
 
