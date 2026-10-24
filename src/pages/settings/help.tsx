@@ -1,3 +1,4 @@
+import { Button } from "@chakra-ui/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "react-i18next";
 import { CommonIconButton } from "@/components/common/common-icon-button";
@@ -5,12 +6,31 @@ import {
   OptionItemGroup,
   OptionItemGroupProps,
 } from "@/components/common/option-item";
+import { useLauncherConfig } from "@/contexts/config";
+import { useSharedModals } from "@/contexts/shared-modal";
 
 const HelpSettingsPage = () => {
   const { t } = useTranslation();
+  const { config } = useLauncherConfig();
+  const { openSharedModal } = useSharedModals();
+  const primaryColor = config.appearance.theme.primaryColor;
   const helpSettingGroups: OptionItemGroupProps[] = [
     {
       items: [
+        {
+          title: t("HelpSettingsPage.top.settings.Guide.title"),
+          description: t("HelpSettingsPage.top.settings.Guide.description"),
+          children: (
+            <Button
+              size="xs"
+              variant="subtle"
+              colorScheme={primaryColor}
+              onClick={() => openSharedModal("first-run-guide")}
+            >
+              {t("HelpSettingsPage.top.settings.Guide.button")}
+            </Button>
+          ),
+        },
         {
           title: t("HelpSettingsPage.top.settings.LauncherDocs.title"),
           children: (

@@ -51,6 +51,10 @@
           "title": "Sinter",
           "description": "於 Windows、Linux 爲啟者介面之書體，依 SIL 之約而用。"
         },
+        "sjmcl": {
+          "title": "SJMCL",
+          "description": "此客戶端乃基於此開源之項而再作，謝 SJMCL 開發諸君"
+        },
         "skinview3d": {
           "title": "bs-community / skinview3d",
           "description": "外觀預覽之件，資此開源之項而成，依 MIT 之約而用。"
@@ -71,6 +75,23 @@
         "openSourceLicense": {
           "title": "開源之約",
           "description": "此項遵 GNU General Public License v3.0（附增條）"
+        }
+      }
+    },
+    "xauatcraft": {
+      "title": "仙建世界",
+      "settings": {
+        "website": {
+          "title": "伺服官網",
+          "description": "公告、規則與白名單之說"
+        },
+        "skin": {
+          "title": "皮膚站",
+          "description": "註冊帳號、上傳與更換皮膚"
+        },
+        "qqGroup": {
+          "title": "玩家 QQ 群",
+          "description": "853274331"
         }
       }
     }
@@ -873,6 +894,41 @@
   "FileDnDProvider": {
     "fileName": "{{fileName}} 等（凡 {{count}} 個）"
   },
+  "FirstRunGuideModal": {
+    "header": {
+      "title": "🎉 始用仙建世界",
+      "description": "依下列事目備辦，則可徑入伺服矣。"
+    },
+    "steps": {
+      "java": {
+        "title": "安裝 Java 執行時",
+        "description": "不得可用之 Java，則不能啟遊戲。",
+        "action": "往安裝"
+      },
+      "skin": {
+        "title": "註冊皮膚站",
+        "description": "邀請之碼請詢群內管理，所名即遊戲中名。",
+        "action": "啟皮膚站"
+      },
+      "account": {
+        "title": "增遊戲帳號",
+        "description": "以皮膚站帳號入，認證之服已預置。",
+        "action": "往增設"
+      },
+      "instance": {
+        "title": "立或納實例",
+        "description": "既立實例或納整合包，伺服之址自填。",
+        "action": "往創設"
+      }
+    },
+    "status": {
+      "done": "已成"
+    },
+    "footer": {
+      "later": "容後再議",
+      "launch": "往啟動"
+    }
+  },
   "GameAdvancedSettingsPage": {
     "title": "戲之進階置設",
     "topWarning": "戲之進階置設僅提供給專業戲者使用。改以下之選或致戲不能啟。除非您充分了解其中的意義，否則請不要改這些之選！",
@@ -1444,6 +1500,11 @@
     },
     "top": {
       "settings": {
+        "Guide": {
+          "title": "新手引導",
+          "description": "復觀註冊、登入與立實例之入服清單",
+          "button": "啟之"
+        },
         "LauncherDocs": {
           "title": "SJMC Launcher 案文",
           "url": "https://mc.sjtu.cn/sjmcl/docs"

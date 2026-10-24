@@ -35,6 +35,7 @@ const AboutSettingsPage = () => {
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const ackList = {
+    sjmcl: "https://github.com/UNIkeEN/SJMCL",
     skinview3d: "https://github.com/bs-community/skinview3d",
     mcim: "https://www.mcimirror.top",
     bmclapi: "https://bmclapidoc.bangbang93.com/",
@@ -140,14 +141,14 @@ const AboutSettingsPage = () => {
           title: t("AboutSettingsPage.about.settings.sourceCode.title"),
           children: (
             <CommonIconButton
-              label="https://github.com/UNIkeEN/SJMCL"
+              label="https://github.com/XAUAT-iOSClub/XAUATMCL"
               icon="external"
               withTooltip
               tooltipPlacement="bottom-end"
               size="xs"
               h={18}
               onClick={() => {
-                openUrl("https://github.com/UNIkeEN/SJMCL");
+                openUrl("https://github.com/XAUAT-iOSClub/XAUATMCL");
               }}
             />
           ),
@@ -167,6 +168,56 @@ const AboutSettingsPage = () => {
               }}
             />
           ),
+        },
+      ],
+    },
+    {
+      title: t("AboutSettingsPage.xauatcraft.title"),
+      items: [
+        {
+          title: t("AboutSettingsPage.xauatcraft.settings.website.title"),
+          description: t(
+            "AboutSettingsPage.xauatcraft.settings.website.description"
+          ),
+          children: (
+            <CommonIconButton
+              label="https://www.xauatcraft.com"
+              icon="external"
+              withTooltip
+              tooltipPlacement="bottom-end"
+              size="xs"
+              h={18}
+              onClick={() => {
+                openUrl("https://www.xauatcraft.com");
+              }}
+            />
+          ),
+        },
+        {
+          title: t("AboutSettingsPage.xauatcraft.settings.skin.title"),
+          description: t(
+            "AboutSettingsPage.xauatcraft.settings.skin.description"
+          ),
+          children: (
+            <CommonIconButton
+              label="https://skin.xauatcraft.com"
+              icon="external"
+              withTooltip
+              tooltipPlacement="bottom-end"
+              size="xs"
+              h={18}
+              onClick={() => {
+                openUrl("https://skin.xauatcraft.com");
+              }}
+            />
+          ),
+        },
+        {
+          title: t("AboutSettingsPage.xauatcraft.settings.qqGroup.title"),
+          description: t(
+            "AboutSettingsPage.xauatcraft.settings.qqGroup.description"
+          ),
+          children: <></>,
         },
       ],
     },

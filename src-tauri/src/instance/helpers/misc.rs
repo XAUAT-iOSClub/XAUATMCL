@@ -12,6 +12,7 @@ use zip::ZipArchive;
 
 use crate::instance::helpers::client_jar::load_game_version_from_jar;
 use crate::instance::helpers::client_json::{McClientInfo, libraries_to_info, patches_to_info};
+use crate::instance::helpers::server::ensure_preset_game_servers;
 use crate::instance::models::misc::{
   Instance, InstanceError, InstanceSubdirType, ModLoader, ModLoaderStatus, OptiFine,
 };
@@ -292,10 +293,15 @@ pub async fn refresh_and_update_instances(app: &AppHandle) {
     state.local_game_directories.clone()
   };
   let instances = refresh_all_instances(&local_game_directories).await;
+  let instance_ids: Vec<String> = instances.keys().cloned().collect();
   // update the instances in the app state
-  let binding = app.state::<Mutex<HashMap<String, Instance>>>();
-  let mut state = binding.lock().unwrap();
-  *state = instances;
+  {
+    let binding = app.state::<Mutex<HashMap<String, Instance>>>();
+    let mut state = binding.lock().unwrap();
+    *state = instances;
+  }
+  // give freshly discovered instances the club server, so players never type the address by hand.
+  ensure_preset_game_servers(app, &instance_ids).await;
 }
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]

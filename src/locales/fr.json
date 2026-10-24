@@ -51,6 +51,10 @@
           "title": "Sinter",
           "description": "Utilisé comme police d'interface sur Windows et Linux, sous licence SIL"
         },
+        "sjmcl": {
+          "title": "SJMCL",
+          "description": "Ce client est basé sur ce projet open source. Merci à l'équipe SJMCL."
+        },
         "skinview3d": {
           "title": "bs-community / skinview3d",
           "description": "Le composant d'aperçu de la peau est basé sur ce projet open source, sous licence MIT"
@@ -71,6 +75,23 @@
         "openSourceLicense": {
           "title": "Licence open source",
           "description": "Ce projet est sous licence GNU General Public License v3.0 (avec conditions supplémentaires)"
+        }
+      }
+    },
+    "xauatcraft": {
+      "title": "Xianjian World",
+      "settings": {
+        "website": {
+          "title": "Site du serveur",
+          "description": "Annonces, règles et guide de la liste blanche"
+        },
+        "skin": {
+          "title": "Serveur de skins",
+          "description": "Créer un compte, importer et changer de skin"
+        },
+        "qqGroup": {
+          "title": "Groupe QQ des joueurs",
+          "description": "853274331"
         }
       }
     }
@@ -873,6 +894,41 @@
   "FileDnDProvider": {
     "fileName": "{{fileName}} et autres ({{count}} au total)"
   },
+  "FirstRunGuideModal": {
+    "header": {
+      "title": "🎉 Bienvenue dans Xianjian World",
+      "description": "Suivez la liste ci-dessous et vous serez prêt à rejoindre le serveur."
+    },
+    "steps": {
+      "java": {
+        "title": "Installer un environnement Java",
+        "description": "Sans Java utilisable, le lanceur ne peut pas démarrer le jeu.",
+        "action": "Installer"
+      },
+      "skin": {
+        "title": "S'inscrire sur le serveur de skins",
+        "description": "Demandez un code d'invitation à un administrateur. Le nom du compte est le nom en jeu.",
+        "action": "Ouvrir"
+      },
+      "account": {
+        "title": "Ajouter un compte de jeu",
+        "description": "Connectez-vous avec le compte créé ; le serveur d'authentification est préconfiguré.",
+        "action": "Ajouter"
+      },
+      "instance": {
+        "title": "Créer ou importer une instance",
+        "description": "Une fois l'instance créée, l'adresse du serveur est renseignée automatiquement.",
+        "action": "Créer"
+      }
+    },
+    "status": {
+      "done": "Terminé"
+    },
+    "footer": {
+      "later": "Plus tard",
+      "launch": "Aller au lancement"
+    }
+  },
   "GameAdvancedSettingsPage": {
     "title": "Paramètres avancés du jeu",
     "topWarning": "Les paramètres avancés sont réservés aux utilisateurs expérimentés. Modifier ces options peut empêcher le jeu de démarrer. Ne modifiez pas ces options à moins de bien comprendre leur signification !",
@@ -1444,6 +1500,11 @@
     },
     "top": {
       "settings": {
+        "Guide": {
+          "title": "Guide de démarrage",
+          "description": "Revoir la liste pour s'inscrire, se connecter et créer une instance",
+          "button": "Ouvrir"
+        },
         "LauncherDocs": {
           "title": "Documentation du lanceur SJMC",
           "url": "https://mc.sjtu.cn/sjmcl/en/docs"

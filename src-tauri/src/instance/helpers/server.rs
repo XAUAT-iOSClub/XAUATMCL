@@ -8,6 +8,7 @@ use tauri::AppHandle;
 use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 
+use crate::instance::constants::PRESET_GAME_SERVERS;
 use crate::instance::helpers::misc::get_instance_subdir_path_by_id;
 use crate::instance::models::misc::InstanceSubdirType;
 
@@ -108,6 +109,34 @@ pub async fn save_servers_to_nbt(path: &Path, servers: &[GameServerInfo]) -> SJM
   tokio::fs::write(path, bytes).await?;
 
   Ok(())
+}
+
+/// Writes the club server into instances that do not have a `servers.dat` yet.
+///
+/// The file is only created when missing, so a player who edits or clears the
+/// server list never has the preset pushed back on the next launch.
+pub async fn ensure_preset_game_servers(app: &AppHandle, instance_ids: &[String]) {
+  for instance_id in instance_ids {
+    let Some(nbt_path) = get_servers_nbt_path_by_instance_id(app, instance_id) else {
+      continue;
+    };
+    if nbt_path.exists() {
+      continue;
+    }
+
+    let servers: Vec<GameServerInfo> = PRESET_GAME_SERVERS
+      .iter()
+      .map(|(address, name)| GameServerInfo {
+        ip: address.to_string(),
+        name: name.to_string(),
+        ..Default::default()
+      })
+      .collect();
+
+    if let Err(error) = save_servers_to_nbt(&nbt_path, &servers).await {
+      log::warn!("Failed to write preset servers for instance {instance_id}: {error:?}");
+    }
+  }
 }
 
 pub async fn query_servers_online(
