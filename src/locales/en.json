@@ -51,6 +51,10 @@
           "title": "Sinter",
           "description": "Used as the interface font on Windows and Linux platforms, under the SIL License"
         },
+        "sjmcl": {
+          "title": "SJMCL",
+          "description": "This client is built on top of this open-source project. Thanks to the SJMCL team."
+        },
         "skinview3d": {
           "title": "bs-community / skinview3d",
           "description": "Our skin preview component is built based on this open-source project, under the MIT License"
@@ -71,6 +75,23 @@
         "openSourceLicense": {
           "title": "Open Source License",
           "description": "Licensed under the GNU General Public License v3.0, with additional terms."
+        }
+      }
+    },
+    "xauatcraft": {
+      "title": "Xianjian World",
+      "settings": {
+        "website": {
+          "title": "Server website",
+          "description": "Announcements, rules and whitelist guide"
+        },
+        "skin": {
+          "title": "Skin server",
+          "description": "Register, upload and switch skins"
+        },
+        "qqGroup": {
+          "title": "Player QQ group",
+          "description": "853274331"
         }
       }
     }
@@ -873,6 +894,41 @@
   "FileDnDProvider": {
     "fileName": "{{fileName}} and others ({{count}} total)"
   },
+  "FirstRunGuideModal": {
+    "header": {
+      "title": "🎉 Get started with Xianjian World",
+      "description": "Work through the checklist below and you are ready to join the server."
+    },
+    "steps": {
+      "java": {
+        "title": "Install a Java runtime",
+        "description": "The launcher cannot start the game without a usable Java runtime.",
+        "action": "Install"
+      },
+      "skin": {
+        "title": "Register on the skin server",
+        "description": "Ask a group admin for an invite code. Your account name is your in-game name.",
+        "action": "Open"
+      },
+      "account": {
+        "title": "Add a game account",
+        "description": "Sign in with the account you just registered; the auth server is preconfigured.",
+        "action": "Add"
+      },
+      "instance": {
+        "title": "Create or import an instance",
+        "description": "Once the instance exists, the server address is filled in for you.",
+        "action": "Create"
+      }
+    },
+    "status": {
+      "done": "Done"
+    },
+    "footer": {
+      "later": "Later",
+      "launch": "Go to launch"
+    }
+  },
   "GameAdvancedSettingsPage": {
     "title": "Advanced Settings",
     "topWarning": "Advanced settings are for expert users. Changing them may break the game. Do not modify unless you know what you're doing.",
@@ -1444,6 +1500,11 @@
     },
     "top": {
       "settings": {
+        "Guide": {
+          "title": "Getting started",
+          "description": "Review the checklist for registering, signing in and creating an instance",
+          "button": "Open"
+        },
         "LauncherDocs": {
           "title": "SJMC Launcher Documentation",
           "url": "https://mc.sjtu.cn/sjmcl/en/docs"

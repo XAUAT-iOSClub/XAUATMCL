@@ -51,6 +51,10 @@
           "title": "Sinter",
           "description": "Windows 及び Linux プラットフォームのランチャーUIフォントが SIL に準拠して利用されています。"
         },
+        "sjmcl": {
+          "title": "SJMCL",
+          "description": "このクライアントはこのオープンソースプロジェクトを基に開発されています。SJMCL 開発チームに感謝します。"
+        },
         "skinview3d": {
           "title": "bs-community / skinview3d",
           "description": "スキンプレビューコンポーネントのコード実装において、このオープンソースプロジェクトを参考し、 MIT に準拠して利用しています。"
@@ -71,6 +75,23 @@
         "openSourceLicense": {
           "title": "オープンソースライセンス",
           "description": "このプロジェクトは GNU General Public License v3.0 （追加条項が適用）に準拠"
+        }
+      }
+    },
+    "xauatcraft": {
+      "title": "仙建世界",
+      "settings": {
+        "website": {
+          "title": "サーバー公式サイト",
+          "description": "お知らせ、ルール、ホワイトリストの案内"
+        },
+        "skin": {
+          "title": "スキンサーバー",
+          "description": "アカウント登録、スキンのアップロードと変更"
+        },
+        "qqGroup": {
+          "title": "プレイヤー QQ グループ",
+          "description": "853274331"
         }
       }
     }
@@ -873,6 +894,41 @@
   "FileDnDProvider": {
     "fileName": "{{fileName}} など（全{{count}}件）"
   },
+  "FirstRunGuideModal": {
+    "header": {
+      "title": "🎉 仙建世界をはじめよう",
+      "description": "下のチェックリストを済ませれば、そのままサーバーに入れます。"
+    },
+    "steps": {
+      "java": {
+        "title": "Java ランタイムをインストール",
+        "description": "利用できる Java がないとゲームを起動できません。",
+        "action": "インストール"
+      },
+      "skin": {
+        "title": "スキンサーバーに登録",
+        "description": "招待コードはグループの管理者にご確認ください。登録名がゲーム内の名前になります。",
+        "action": "開く"
+      },
+      "account": {
+        "title": "ゲームアカウントを追加",
+        "description": "登録したアカウントでログインするだけです。認証サーバーは設定済みです。",
+        "action": "追加"
+      },
+      "instance": {
+        "title": "インスタンスを作成・導入",
+        "description": "インスタンスを作成すれば、サーバーアドレスは自動で入力されます。",
+        "action": "作成"
+      }
+    },
+    "status": {
+      "done": "完了"
+    },
+    "footer": {
+      "later": "あとで",
+      "launch": "起動画面へ"
+    }
+  },
   "GameAdvancedSettingsPage": {
     "title": "高度起動設定",
     "topWarning": "本設定は上級者向けに設計されていますので、以下の項目を変更すると、ゲームの起動不能やデータの破損を引き起こす可能性があります。オプションの機能を完全に理解している場合のみ変更してください。",
@@ -1444,6 +1500,11 @@
     },
     "top": {
       "settings": {
+        "Guide": {
+          "title": "はじめてのガイド",
+          "description": "登録・ログイン・インスタンス作成のチェックリストをもう一度確認",
+          "button": "開く"
+        },
         "LauncherDocs": {
           "title": "SJMC Launcher ドキュメント（中国語）",
           "url": "https://mc.sjtu.cn/sjmcl/docs"

@@ -51,6 +51,10 @@
           "title": "Sinter",
           "description": "在 Windows 和 Linux 平臺作為啟動器介面字型，遵循 SIL 協議使用"
         },
+        "sjmcl": {
+          "title": "SJMCL",
+          "description": "本客戶端基於此開源專案二次開發，感謝 SJMCL 開發團隊"
+        },
         "skinview3d": {
           "title": "bs-community / skinview3d",
           "description": "外觀預覽元件基於此開源專案實現，遵循 MIT 協議使用"
@@ -71,6 +75,23 @@
         "openSourceLicense": {
           "title": "開源協議",
           "description": "本專案遵循 GNU General Public License v3.0 協議（包含附加條款）"
+        }
+      }
+    },
+    "xauatcraft": {
+      "title": "仙建世界",
+      "settings": {
+        "website": {
+          "title": "伺服器官網",
+          "description": "公告、規則與白名單說明"
+        },
+        "skin": {
+          "title": "皮膚站",
+          "description": "註冊帳號、上傳與更換皮膚"
+        },
+        "qqGroup": {
+          "title": "玩家 QQ 群",
+          "description": "853274331"
         }
       }
     }
@@ -873,6 +894,41 @@
   "FileDnDProvider": {
     "fileName": "{{fileName}} 等（共 {{count}} 個）"
   },
+  "FirstRunGuideModal": {
+    "header": {
+      "title": "🎉 開始使用仙建世界",
+      "description": "照著下面的清單完成準備，就可以直接進入伺服器了。"
+    },
+    "steps": {
+      "java": {
+        "title": "安裝 Java 執行環境",
+        "description": "偵測不到可用的 Java 時，啟動器無法啟動遊戲。",
+        "action": "去安裝"
+      },
+      "skin": {
+        "title": "註冊皮膚站帳號",
+        "description": "邀請碼請向群內管理員索取，註冊名稱即遊戲內角色名稱。",
+        "action": "開啟皮膚站"
+      },
+      "account": {
+        "title": "新增遊戲帳號",
+        "description": "使用註冊好的皮膚站帳號登入即可，認證伺服器已為你預置。",
+        "action": "去新增"
+      },
+      "instance": {
+        "title": "建立或匯入實例",
+        "description": "建立實例或匯入整合包後，伺服器位址會自動填好。",
+        "action": "去建立"
+      }
+    },
+    "status": {
+      "done": "已完成"
+    },
+    "footer": {
+      "later": "稍後再說",
+      "launch": "前往啟動頁"
+    }
+  },
   "GameAdvancedSettingsPage": {
     "title": "高階遊戲設定",
     "topWarning": "高階遊戲設定僅提供給專業玩家使用。修改以下選項可能導致遊戲無法啟動。除非您充分了解其中的意義，否則請不要修改這些選項！",
@@ -1444,6 +1500,11 @@
     },
     "top": {
       "settings": {
+        "Guide": {
+          "title": "新手引導",
+          "description": "重新查看註冊、登入與建立實例的入服清單",
+          "button": "開啟"
+        },
         "LauncherDocs": {
           "title": "SJMC Launcher 文件",
           "url": "https://mc.sjtu.cn/sjmcl/docs"

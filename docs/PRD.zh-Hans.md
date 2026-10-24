@@ -156,11 +156,14 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 
 ## 5. 后续迭代
 
-### S1 开箱闭环（约 3~4 人日）
+### S1 开箱闭环（已完成）
 
-- **首启引导**：检测无 Java → 一键安装；检测无账号 → 引导注册皮肤站并添加账号；检测无实例 → 引导导入整合包。
-- **预置服务器**：创建实例或首次启动时写入 `servers.dat`（`play.xauatcraft.com` + 子服说明）。
-- **关于页**：补充社团官网、QQ 群、皮肤站入口；源代码卡片改为本仓库地址（上游保留在致谢区）。
+- **首启引导**：同意用户协议后弹出「入服清单」弹窗，四项均可直接操作——安装 Java、注册皮肤站、添加账号、创建/导入实例；已完成的项显示状态徽标。可从「帮助」页随时重新打开。
+  - Java 一步目前跳转到设置页的 Java 管理（复用已有的 Mojang JRE 下载弹窗），尚未做到在同一条弹窗内一键安装。
+- **预置服务器**：实例首次被发现时写入 `servers.dat`（`play.xauatcraft.com` /「仙建世界」）。
+  仅在文件不存在时写入，玩家自行编辑或清空服务器列表后不会被重新塞回。
+- **关于页**：新增「仙建世界」分组（官网 / 皮肤站 / 玩家 QQ 群）；源代码入口改为本仓库，上游 SJMCL 移入致谢区，同时满足附加条款第 2 条。
+- **帮助页**：新增「新手引导」入口，可重新打开入服清单。
 
 ### S2 社群功能（依赖后台，约 4~5 人日）
 
@@ -234,6 +237,9 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 | --- | --- |
 | `src-tauri/tauri.conf.json`、`tauri.{macos,windows,linux}.conf.json` | 产品名、identifier、窗口标题、版本 |
 | `src-tauri/src/account/helpers/authlib_injector/constants.rs` | 追加 1 个预置认证服务器 |
+| `src-tauri/src/instance/constants.rs`、`helpers/server.rs`、`helpers/misc.rs` | 新实例预置 `servers.dat` |
+| `src/components/modals/first-run-guide-modal.tsx`、`special/shared-modals-provider.tsx`、`modals/welcome-and-terms-modal.tsx` | 首启入服清单（替代上游通用导览） |
+| `src/pages/settings/help.tsx`、`settings/about.tsx` | 新手引导入口、社团链接与上游致谢 |
 | `src-tauri/src/launcher_config/helpers/updater.rs` | 更新源改为社团服务，重写检查与下载逻辑，新增 Linux 安装 |
 | `src-tauri/src/launcher_config/commands.rs`、`models.rs` | `VersionMetaInfo.fileName` → `downloadUrl` |
 | `src-tauri/src/utils/sys_info.rs` | 统计版本前缀 |

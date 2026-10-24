@@ -6,6 +6,7 @@ import DeleteInstanceDialog from "@/components/modals/delete-instance-alert-dial
 import DownloadModpackModal from "@/components/modals/download-modpack-modal";
 import DownloadResourceModal from "@/components/modals/download-resource-modal";
 import ExtensionInfoModal from "@/components/modals/extension-info-modal";
+import FirstRunGuideModal from "@/components/modals/first-run-guide-modal";
 import GenericConfirmDialog from "@/components/modals/generic-confirm-dialog";
 import ImportModpackModal from "@/components/modals/import-modpack-modal";
 import LaunchProcessModal from "@/components/modals/launch-process-modal";
@@ -39,6 +40,7 @@ const SharedModals: React.FC<{ children: React.ReactNode }> = ({
     "download-resource": DownloadResourceModal,
     "download-specific-resource": DownloadSpecificResourceModal,
     "extension-info": ExtensionInfoModal,
+    "first-run-guide": FirstRunGuideModal,
     "generic-confirm": GenericConfirmDialog,
     "import-modpack": ImportModpackModal,
     launch: LaunchProcessModal,

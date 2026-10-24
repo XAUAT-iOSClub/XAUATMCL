@@ -19,8 +19,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { Trans, useTranslation } from "react-i18next";
 import { LuLanguages } from "react-icons/lu";
 import LanguageMenu from "@/components/language-menu";
-import { useGuidedTour } from "@/components/special/guided-tour-provider";
 import { useLauncherConfig } from "@/contexts/config";
+import { useSharedModals } from "@/contexts/shared-modal";
 import { BuildType } from "@/enums/misc";
 
 const WelcomeAndTermsModal: React.FC<Omit<ModalProps, "children">> = ({
@@ -29,12 +29,13 @@ const WelcomeAndTermsModal: React.FC<Omit<ModalProps, "children">> = ({
   const { t } = useTranslation();
   const { config, update } = useLauncherConfig();
   const primaryColor = config.appearance.theme.primaryColor;
-  const { startGuidedTour } = useGuidedTour();
+  const { openSharedModal } = useSharedModals();
 
   const handleAgree = () => {
     update("runCount", config.runCount + 1);
     props.onClose();
-    startGuidedTour();
+    // 上游的通用导览替换为可操作的入服清单
+    openSharedModal("first-run-guide");
   };
 
   // For non-release builds, use the build type as the version label for the warning alert.
