@@ -78,6 +78,8 @@
 | 因客户端文件被误删/解压错误导致的求助 | 常见 | 归零 |
 | 整包体积 | 903 MB（PCL 包） | ≤ 120 MB（mrpack） |
 | 包安装耗时（100 Mbps） | 与整包同量级 | ≤ 3 分钟 |
+| 云整合包可见性 | 只能从群文件逐个找 | 启动器内可见全部包、分类与版本 |
+| 整合包更新发现 | 靠群公告与口头通知 | 打开实例页即见「可更新」，含更新日志 |
 
 ### 2.3 非目标（本期明确不做）
 
@@ -204,6 +206,16 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 - **发版卫生**：CI 拒绝重复 sha1 / 重复模组 id、个人数据与 `..` 路径；首个包必须修正 v8.0.0 中重复的 sodium。
 - 技术细节、流水线、清单示例与发版检查单见附录 C。
 
+### S1.6 云整合包服务（规划，P0 1~2 人日 + P1 3~4 人日）
+
+- **定位**：把 S1.5 的单一基础包扩展为「一个目录、多条包线」：`base`（进入社团服务器的整合包）、`minigame`（小游戏）、`modded`（模组服）以及后续新增的包；目录同时提供包的数量、版本历史与下载地址。
+- **可见性**：从「实例 → 添加/导入 → 云整合包」进入目录，首屏显示总数与分类计数（如「共 4 个：基础 1 / 小游戏 2 / 模组服 1」），支持分类筛选与搜索；首页小组件显示「云整合包 N · 可更新 M」。
+- **安装**：选择包与版本 → 下载 mrpack → 校验 sha1 / sha256 → 复用 `create_instance` → 记录 `pack_ref{id, version, channel}`。
+- **更新**：来自云目录的实例都带 `pack_ref`；打开实例页时与目录比对，标出「可更新 vX → vY」并展示更新日志；安装新版本 = 新建实例，旧实例与存档保留（增量更新留到 P2）。
+- **目录契约**：客户端只依赖一份 JSON 契约；P0 可用静态 `packs.json` 快速上线（随包 CI 生成、零后端），正式形态为独立的 `{PACK_API}/api/packs`。**不复用**客户端更新服务（`appapi.xauat.site`，它只负责 App 版本发布），切换服务端不改前端（取舍见附录 D.9 与 §10）。
+- **边界**：目录只收录社团官方包，不做面向其他社团的市场；包格式仍统一为 mrpack。
+- 数据模型、接口、缓存与错误处理见附录 D。
+
 ### S2 社群功能（依赖后台，约 4~5 人日）
 
 - 邀请码申请与审核状态查询；
@@ -227,6 +239,8 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 - **镜像策略**：默认 `mirror`（BMCLAPI 优先），设置页仍可切回官方源或自动。
 - **数据目录隔离**：`identifier` 变更使本客户端与官方 SJMCL 的配置、账号、实例互不干扰。
 - **启动包**：复用 `create_instance(modpack_path, modpack_version)` 与 mrpack 解析，不新增包格式；导入整合包时不会自动补 Fabric API，包必须自带 `fabric-api`。
+- **云整合包**：目录与实例通过 `pack_ref` 关联；安装复用 `create_instance`，更新只做「比对 + 新建实例」，不新增安装器；目录不可用只影响目录页，不阻塞启动与实例管理；目录服务与 App 更新服务（`appapi.xauat.site`）相互独立。
+- **哈希**：下载引擎按 sha1 校验（`download.rs`），因此目录同时给出 sha1 与 sha256，导入边界再校验整包 sha256。
 - **Java**：MC 26.2 的 `javaVersion.majorVersion` 为 25（组件 `java-runtime-epsilon`）；仅创建实例时可自动下载，启动阶段不下载，一键安装需在创建前检查。
 - **包体积**：只分发社团内容，`libraries` / `assets` / 客户端 jar 交给启动器按下载源拉取。
 - **与上游同步**：每两周 rebase 一次；品牌差异集中在 `tauri*.conf.json`、`constants.rs`、`updater.rs`、`locales/*`、`README.md`、`docs/`。
@@ -238,6 +252,7 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 | S0 | 品牌、预置认证、更新通道、合规 | 可编译可发版的分叉骨架 |
 | S1 | 首启引导、服务器预置 | 首个面向新生的可用版本 |
 | S1.5 | 启动包分发：mrpack 流水线 + 一键安装 | 新玩家无需手动装 mods |
+| S1.6 | 云整合包目录：多包浏览、数量统计、安装与更新 | 多包线统一入口 |
 | S2 | 邀请码、白名单 | 减少人工审批 |
 | S3 | 签名、发布流水线 | 正式对外分发 |
 
@@ -264,6 +279,14 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 11. 断网、404、sha1 不匹配三类故障均给出可操作提示；
 12. 8.0.0 → 8.1.0 安装新实例后，旧实例与存档不受影响。
 
+**S1.6**
+
+13. 「云整合包」页显示的总数与分类计数与目录一致（基础 / 小游戏 / 模组服）；
+14. 从目录安装 `base` 与小游戏包各一次，均可进服；安装后实例带 `pack_ref`；
+15. 已安装 base 8.0.0 时显示「可更新 8.1.0」，更新日志可见；更新后旧实例与存档保留；
+16. 目录不可用或断网时显示缓存与「离线」标记，且启动器其余功能正常；
+17. 非白名单下载域，或 sha1 / sha256 不匹配的包被拒绝，并给出具体原因。
+
 ## 9. 风险与对策
 
 | 风险 | 影响 | 对策 |
@@ -279,12 +302,20 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 | 更新 = 新实例，存档未迁移 | 玩家投诉 | 发版说明与完成弹窗明确提示；P2 增量更新 |
 | 第三方 mod 再分发许可 | 合规风险 | 优先官方直链；`mods.lock.json` 记录来源与许可 |
 | 启动包无签名 | 包可被替换 | P2 Ed25519 签名 + 内置公钥，此前依赖 HTTPS 与群内校验值 |
+| 云目录服务不可用 | 云整合包页不可用 | 客户端缓存 + 离线标记；目录失败不影响启动与实例管理 |
+| 目录元数据与包文件不一致 | 装出错误版本 | 目录同时给 sha1 / sha256，导入前校验；发布侧 CI 强校验 |
+| 多包并存占用磁盘 | 玩家磁盘紧张 | 安装前显示包大小与预计占用；实例页可清理 |
+| 包线增多导致版本漂移 | 玩家进错服务器 | 每个实例记录 `pack_ref`；实例卡片显示包名与版本 |
 
 ## 10. 待决事项
 
 1. 皮肤站是否提供邀请码/白名单接口，以及接口鉴权方式；
 2. 图形资源（图标、启动图、安装器素材）的提供方与交付时间；
 3. 启动包版本号是否延续 PCL 包（`8.0.0` → `8.1.0`），以及 `{PACK_CDN}` 的域名、归属、配额与回源策略；
+4. 云整合包目录用 `{PACK_CDN}` 的静态 `packs.json`，还是独立部署 `{PACK_API}/api/packs`（不复用 App 更新服务；影响下架与统计能力）；
+5. 分类枚举是否固定为 `base` / `minigame` / `modded` / `other`；
+6. 更新提示策略：只在实例页标记，还是启动时弹窗，以及检查频率；
+7. 各包是否统一 mrpack 与同一 MC 版本，还是允许模组服使用不同 MC / loader。
 
 ## 附录 A：与上游的差异清单
 
@@ -298,6 +329,8 @@ SJMCL_<version>_<os>_<arch>.deb / .rpm    # Linux 安装包
 | `src-tauri/src/launcher_config/helpers/updater.rs` | 更新源改为社团服务，重写检查与下载逻辑，新增 Linux 安装 |
 | `src-tauri/src/launcher_config/commands.rs`、`models.rs` | `VersionMetaInfo.fileName` → `downloadUrl` |
 | `src-tauri/src/utils/sys_info.rs` | 统计版本前缀 |
+| `src-tauri/src/instance/helpers/pack_catalog.rs`（新增）、`models/misc.rs`、`commands.rs` | S1.6 目录拉取与缓存、`pack_ref`、`install_cloud_pack` |
+| `src/pages/packs/*`、`src/components/modals/cloud-pack-modal.tsx`（新增） | S1.6 云整合包列表、详情与更新提示 |
 | `src-tauri/src/instance/commands.rs`、`helpers/modpack/import.rs` | S1.5 新增 `install_club_pack`，复用 mrpack 解析 |
 | `src-tauri/src/launcher_config/models.rs`、`.env.template` | S1.5 新增 `XJMC_PACK_URL` / `XJMC_PACK_SHA256` |
 | `src/components/modals/first-run-guide-modal.tsx`、`src/pages/instances/add-import.tsx` | S1.5 一键安装入口与包版本展示 |
@@ -421,13 +454,15 @@ CI（tag `v8.1.0`）流程：
 
 1. `verify`：`mods.lock.json` 中的 sha1 逐个校验；**按 sha1/模组 id 去重**；禁止 `saves/`、`screenshots/`、`logs/`、`usercache.json`；禁止 `..` 路径；`overrides/` 中不得出现 jar；
 2. `build`：生成 `modrinth.index.json` → 打 zip → 计算整包 sha256；
-3. `publish`：上传对象存储与 GitHub Release（双源），更新 `latest.json`：
+3. `publish`：上传对象存储与 GitHub Release（双源），更新 `latest.json` 与云目录条目（附录 D）：
 
 ```json
 { "version": "8.1.0", "url": "https://{PACK_CDN}/pack/8.1.0.mrpack",
   "sha256": "…", "size": 118000000, "minLauncherVersion": "0.2.0",
   "notes": "…", "releasedAt": "2026-11-01T10:00:00Z" }
 ```
+
+> 云整合包服务上线后，单包 `latest.json` 由目录条目取代；静态 `latest.json` 仍保留作为兜底。
 
 配套两个一次性脚本：
 
@@ -457,7 +492,7 @@ CI（tag `v8.1.0`）流程：
 **P1（约 2~3 人日）**
 
 - 构建期注入 `XJMC_PACK_URL`、`XJMC_PACK_SHA256`（与现有 `XJMC_UPDATE_*` 同一套 `.env` / `build.rs` 机制）；任一为空则隐藏入口；
-- 新增命令 `install_club_pack`：下载整包到临时目录 → 校验 sha256 → 解析版本元信息（同 P0 第 3 步）→ 复用 `create_instance`（`modpack_path` + `modpack_version`）→ 返回实例摘要与任务组 ID；
+- 新增命令 `install_club_pack`（S1.6 起泛化为 `install_cloud_pack(packId, version)`，见附录 D）：下载整包到临时目录 → 校验 sha256 → 解析版本元信息（同 P0 第 3 步）→ 复用 `create_instance`（`modpack_path` + `modpack_version`）→ 返回实例摘要与任务组 ID；
 - 入口三处：首启引导第 4 项改为「安装仙建世界整合包」、实例页空状态、帮助页；
 - 「创建 + 等任务组完成 + 选中实例 + 启动」做一层前端编排（后端没有总编排，`launch-process-modal.tsx:152-240` 是四步命令序列），安装完成后直接给出「启动游戏」。
 
@@ -471,7 +506,7 @@ CI（tag `v8.1.0`）流程：
 
 ### C.6 更新与回滚
 
-- P0/P1 的更新语义是「**安装新版本 = 新建实例**」，旧实例（含存档）原样保留，玩家自行迁移；发版说明中明确写出这一点，避免误以为原地升级；
+- P0/P1 的更新语义是「**安装新版本 = 新建实例**」，旧实例（含存档）原样保留，玩家自行迁移；发版说明中明确写出这一点，避免误以为原地升级；云目录中的其他包遵循同一语义（附录 D）；
 - P2 才引入原地增量更新，并保留「上一个包版本」的回滚点（仅回滚包文件，不动存档）；
 - 包版本与客户端版本**解耦**：包用 `8.x`，客户端用 `0.x`；`minLauncherVersion` 用于阻止旧客户端安装新包。
 
@@ -553,7 +588,7 @@ CI（tag `v8.1.0`）流程：
 4. **上传**：mods 与 overrides 内的大文件传到 `{PACK_CDN}/pack/8.1.0/`，URL 写入清单；同一批文件同步到 GitHub Release 作为 `downloads[1]`；
 5. **出包**：CI 生成 `xianjian-8.1.0.mrpack` 与 `latest.json`（整包 sha256、体积、更新时间、更新说明）；
 6. **双源验证**：在 `mirror` 与 `official` 两种下载源下各走一次「全新安装 → 启动 → 进服」，确认 21 个 mod 全部加载、`servers.dat` 有预置条目、认证服务器可选「仙建世界皮肤站」；
-7. **发布**：`latest.json` 与官网下载页上线；P1 完成后首启引导按钮直接指向该包，群文件只作兜底。
+7. **发布**：`latest.json` 与官网下载页上线，并在 `packs.json` / 云目录中登记该版本与 `base` 分类；P1 完成后首启引导按钮直接指向该包，群文件只作兜底。
 
 预期结果：包体积约 **113 MB**（现状 903 MB 的 12.5%），首次安装约 2~3 分钟（100 Mbps），更新说明只列出 mod 变更。
 
@@ -566,4 +601,198 @@ CI（tag `v8.1.0`）流程：
 - [ ] `xjmc.pack.json` 的 `minLauncherVersion` 与实际 API 兼容
 - [ ] 在 Windows 与 macOS 各做一次全新安装 + 进服
 - [ ] 更新 `latest.json`，保留上一版本文件以便回滚
+- [ ] 云目录条目（`packs.json` 或 `/api/packs`）已登记该版本，哈希、大小与整包一致
 - [ ] 群公告与官网同步更新下载链接与更新说明
+
+## 附录 D：云整合包服务设计
+
+### D.1 目标与范围
+
+- **一个目录、多条包线**：`base`（进入社团服务器的整合包）、`minigame`（小游戏）、`modded`（模组服），预留 `other`；
+- **可见**：总数、分类计数、简介 / 图标 / MC 版本 / 加载器 / 大小 / 更新时间 / 版本历史；
+- **可装**：从目录直接安装任意包，复用 S1.5 的 mrpack 管线；
+- **可更新**：实例记录 `pack_ref`，与目录比对得到更新提示与日志；
+- **非目标**：不做面向其他社团的包市场；不做服务端白名单 / 邀请码（S2）；本期不做增量更新（P2）。
+
+### D.2 数据模型
+
+包（PackSummary）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | string | 稳定 slug，如 `base`、`minigame-skyblock`、`modded-create` |
+| `name` | string | 显示名 |
+| `category` | enum | `base` / `minigame` / `modded` / `other` |
+| `summary` | string | 一句话简介 |
+| `description` | string | Markdown 详情 |
+| `iconUrl` | string | 图标地址（可为空） |
+| `mcVersion` | string | 如 `26.2`；版本级可覆盖 |
+| `loader` | object | `{ type, version }`，如 `fabric/0.19.5`、`neoforge/…` |
+| `latestVersion` | string | 最新版本号（语义化） |
+| `sizeBytes` | number | 最新版整包大小 |
+| `updatedAt` | string | ISO 8601 |
+| `tags` | string[] | 如「推荐」「生存」「活动」 |
+| `isActive` | boolean | 下架后目录隐藏，已安装实例不受影响 |
+
+版本（PackVersion）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `version` | string | 如 `8.1.0` |
+| `releasedAt` | string | ISO 8601 |
+| `changelog` | string | Markdown 更新日志 |
+| `sha1` / `sha256` | string | 整包哈希，下载与导入各校验一次 |
+| `sizeBytes` | number | 整包大小 |
+| `downloadUrl` | string | 主源，指向 `{PACK_CDN}` |
+| `mirrors` | string[] | 备源，如 GitHub Release |
+| `minLauncherVersion` | string | 低于此版本拒绝安装 |
+| `mcVersion` / `loader` | string / object | 可选，覆盖包级声明 |
+
+客户端本地（Instance 内）：`pack_ref = { id, version, channel, installedAt }`，用于更新比对与实例标识，不参与文件校验（校验一律以哈希为准）。
+
+### D.3 目录契约
+
+**P0 静态目录**：`GET {PACK_CDN}/packs.json`，一个文件包含全部分类与版本：
+
+```json
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-01T10:00:00Z",
+  "total": 4,
+  "counts": { "base": 1, "minigame": 2, "modded": 1, "other": 0 },
+  "packs": [
+    {
+      "id": "base",
+      "name": "仙建世界",
+      "category": "base",
+      "summary": "社团生存服基础包",
+      "mcVersion": "26.2",
+      "loader": { "type": "fabric", "version": "0.19.5" },
+      "latestVersion": "8.1.0",
+      "sizeBytes": 118000000,
+      "updatedAt": "2026-11-01T10:00:00Z",
+      "tags": ["推荐", "生存"],
+      "isActive": true,
+      "versions": [
+        {
+          "version": "8.1.0",
+          "releasedAt": "2026-11-01T10:00:00Z",
+          "changelog": "- 修正重复的 sodium\n- 新增 …",
+          "sha1": "…",
+          "sha256": "…",
+          "sizeBytes": 118000000,
+          "downloadUrl": "https://{PACK_CDN}/pack/8.1.0.mrpack",
+          "mirrors": ["https://github.com/xauatcraft/pack/releases/download/v8.1.0/xianjian-8.1.0.mrpack"],
+          "minLauncherVersion": "0.2.0"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**P1 独立目录服务**（与静态同构，便于客户端无感切换；服务地址记为 `{PACK_API}`，不复用 App 更新服务）：
+
+| 方法 | 路径 | 返回 |
+| --- | --- | --- |
+| GET | `{PACK_API}/api/packs?category=&q=&channel=stable` | `{ total, counts, packs: PackSummary[] }` |
+| GET | `{PACK_API}/api/packs/{id}` | `PackSummary` + `versions[]` |
+| GET | `{PACK_API}/api/packs/{id}/latest?channel=stable` | 最新 `PackVersion` |
+| GET | `{PACK_API}/api/packs/{id}/versions/{version}` | 指定 `PackVersion` |
+
+计数以服务端返回的 `total` / `counts` 为准，客户端不按分页结果自行推算。
+
+### D.4 客户端流程
+
+**浏览**
+
+1. 「实例 → 添加/导入 → 云整合包」打开目录页；
+2. 首屏渲染缓存，后台刷新（见 D.5）；
+3. 页头显示「共 N 个整合包 · 基础 a / 小游戏 b / 模组服 c」；分类 tab 带计数，支持搜索；
+4. 卡片展示图标、名称、分类、MC 版本 + 加载器、大小、更新时间、已装版本（若有）。
+
+**安装**
+
+1. 打开详情，默认选中 `latestVersion`，可切换历史版本；
+2. 调用 `install_cloud_pack(packId, version)`；
+3. 下载整包（进度、重试、备源切换）→ 下载引擎校验 sha1 → 导入前校验 sha256；
+4. `create_instance(modpack_path, modpack_version)` 并写入 `pack_ref`；
+5. 提交下载任务组，完成后提示「启动游戏」。
+
+**更新**
+
+1. 实例页加载时调用 `check_pack_updates()`：取目录缓存，按 `pack_ref.id` 匹配并比较版本；
+2. 有更新 → 实例卡片徽标「可更新 vX → vY」，详情展示 `changelog`；
+3. 点击后安装新版本，实例名默认「<包名> <版本>」，重名时追加序号；旧实例与存档保留；
+4. P2 再提供原地增量更新与回滚。
+
+### D.5 缓存与离线
+
+- 目录缓存：内存 + 磁盘（`pack-catalog.json`），TTL 10 分钟；
+- 条件请求：静态目录用 `If-Modified-Since` / 内容 sha256，API 模式用 `ETag` / `If-None-Match`；
+- 打开页面先渲染缓存，再后台刷新（stale-while-revalidate）；
+- 离线时显示上次成功时间与「离线」标记；仍可安装（若文件可下载），否则提示稍后重试；
+- 目录请求失败只记录日志，不阻塞启动器启动。
+
+### D.6 错误处理
+
+| 场景 | 表现 |
+| --- | --- |
+| 目录 404 / 超时 | 显示缓存与「离线」标记，提供重试 |
+| 包已下架 | 卡片置灰、安装禁用，提示「已下架」；已安装实例照常启动 |
+| 版本不存在 | 详情回到最新版并提示 |
+| 下载 404 / 超时 | 自动尝试 `mirrors`，仍失败则指出文件与来源 |
+| sha1 / sha256 不符 | 中止安装，展示期望值与实际值 |
+| MC 版本 / 加载器不可用 | 提示切换下载源，并列出所需版本 |
+| 磁盘不足 | 安装前按 `sizeBytes` 估算并提示 |
+
+### D.7 更新策略
+
+- 只提示、不自动下载；检查频率与是否弹窗见 §10 待决；
+- 安装新版本 = 新建实例，旧实例与存档保留，实例名带版本号；
+- 同一实例不原地换包；P2 提供原地升级与回滚；
+- 模型保留 `channel`（`stable` / `beta`），P1 只实现 `stable`；
+- 本地导入（无 `pack_ref`）的实例不参与更新检查；P2 可提供「按整包哈希匹配目录」或手动关联。
+
+### D.8 安全与治理
+
+- 只收录官方目录中的包；下载域白名单为 `{PACK_CDN}` 与 GitHub Release；
+- 目录哈希 + 文件哈希双重校验，P2 增加 Ed25519 签名（公钥内置）；
+- 发布权限走 CI token 与人工 review；下架用 `isActive=false`，不删除历史版本；
+- `changelog` 必填；每个包独立仓库 / 目录，版本 tag 与目录条目一一对应。
+
+### D.9 后端落地路径
+
+| 方案 | 改动 | 优点 | 缺点 |
+| --- | --- | --- | --- |
+| A. 静态 `packs.json` | CI 生成并上传到 `{PACK_CDN}` | 零后端、当天可用 | 无统计与即时下架，依赖 CDN 刷新 |
+| B. 独立目录服务 `{PACK_API}` | 新建 packs / versions 表与 `/api/packs`，文件仍放 `{PACK_CDN}` | 有统计、下架即时、可分渠道 | 需后端排期与契约评审 |
+| C. 复用 App 更新服务 | 不采用：`appapi.xauat.site` 的模型是 app → release → soft，没有分类、计数、MC / loader 元数据 | — | — |
+
+现成开源项目里没有与本方案同构的「mrpack 目录 + 分类计数 + 更新」服务：Solder（MIT，已归档，Solder 自有格式）、Modrinth 自身（可自托管但体量大）、packwiz（生成静态索引，无服务端计数）。因此建议先 A 上线，B 作为正式形态；客户端只依赖同一份 JSON 契约，切换无需改前端。
+
+### D.10 分期与工作量
+
+| 阶段 | 内容 | 人日 |
+| --- | --- | --- |
+| P0 | 静态目录 + 列表 / 详情 / 计数 + 复用导入 | 1~2 |
+| P1 | `pack_ref`、更新比对、`install_cloud_pack`、首页组件 | 3~4 |
+| P1.5 | 「发现 → 整合包」增加 `xauatcraft` 源入口（附录 D.11 方案 A） | 1~2 |
+| P2 | API 化、增量更新、完整性修复、签名、多通道 | 5~8 |
+
+### D.11 与「发现 → 整合包」下载源的关系
+
+现状（代码事实）：
+
+- 前端 `downloadSourceLists`（`src/components/resource-downloader.tsx:96-103`）为 `modpack` 只提供 CurseForge 与 Modrinth；
+- 后端按 `OtherResourceSource` 分派资源搜索、版本列表与本地文件识别，未匹配即返回 `NoDownloadApi`（`src-tauri/src/resource/commands.rs:109-115`、`:124-129`、`:187-195`、`:249-255`）。
+
+因此「加一栏 xauatcraft」有三种做法：
+
+| 方案 | 做法 | 优点 | 缺点 | 工作量 |
+| --- | --- | --- | --- | --- |
+| A（推荐） | 仅加「入口」：`OtherResourceSource` 新增 `XauatCraft`，只在 `modpack` 源列表出现；该源下渲染目录组件（复用 S1.6 的列表 / 详情 / 计数），安装走 `install_cloud_pack` | 保留分类、计数、更新语义；不改通用资源模型 | 该源与其他源 UI 不完全一致 | 1~2 人日（依赖 S1.6） |
+| B | 完整适配：把包映射为 `OtherResourceInfo`、版本映射为 `OtherResourceVersionPack`，补齐四处 `match` | 所有入口体验一致 | 搜索 / 下载次数 / 来源标签等字段语义不匹配，维护两套映射 | 3~5 人日 |
+| C | 不加源，在「发现」页放横幅跳转云整合包页 | 最省事 | 发现页内的整合包搜索体验割裂 | 0.5 人日 |
+
+结论：可以加，建议按 A 实现；同时让 `DownloadModpackModal` 的 `initialDownloadSource` 接受 `XauatCraft`，使「发现 → 整合包 → xauatcraft」直接落到目录。注意安装链路要复用 `install_cloud_pack`（下载后建实例），不要走现有 `modpack-wo-install` 下载组，否则玩家还需手动导入。
