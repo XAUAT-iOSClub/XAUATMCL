@@ -5,11 +5,15 @@ interface LogoTitleProps extends BoxProps {}
 
 export const TitleShort: React.FC<LogoTitleProps> = (props) => {
   return (
-    <Heading size="md" className={styles.title} {...props}>
-      <Highlight query="L" styles={{ color: "blue.600", userSelect: "none" }}>
-        SJMCL
-      </Highlight>
-    </Heading>
+    <Image
+      src="/images/icons/launcher-logo.jpeg"
+      alt="仙建世界客户端"
+      boxSize="32px"
+      objectFit="contain"
+      borderRadius="md"
+      flexShrink={0}
+      {...props}
+    />
   );
 };
 
